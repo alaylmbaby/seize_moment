@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seize the moment - 와이어프레임</title>
+<style>
+  :root{
+    --bg-page:#e5e5e5;
+    --frame-bg:#ffffff;
+    --ink-100:#111111;
+    --ink-90:#212121;
+    --ink-70:#4a4a4a;
+    --ink-50:#757575;
+    --ink-30:#a8a8a8;
+    --ink-15:#d6d6d6;
+    --ink-08:#eeeeee;
+    --ink-04:#f6f6f6;
+    --line: 1px solid var(--ink-15);
+    --mono: 'JetBrains Mono','SF Mono',Consolas,monospace;
+    --sans: -apple-system,'Pretendard',system-ui,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html, body{ height:100%; }
+  body{
+    background:var(--bg-page);
+    font-family:var(--sans);
+    color:var(--ink-90);
+    height:100vh;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    overflow:hidden;
+  }
+  .device{
+    width:min(402px, 92vw, calc(88vh * 402 / 874));
+    width:min(402px, 92vw, calc(88dvh * 402 / 874));
+    aspect-ratio:402/874;
+    height:auto;
+    background:var(--frame-bg);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    flex-shrink:0;
+  }
+
+  /* 실제 모바일 화면: 목업 프레임 없이 화면을 꽉 채운다 */
+  @media (max-width: 480px){
+    body{
+      padding:0;
+      height:100vh;
+      height:100dvh;
+    }
+    .device{
+      width:100vw;
+      height:100vh;
+      height:100dvh;
+      max-width:none;
+      aspect-ratio:auto;
+    }
+    .caption{ display:none; }
+  }
+  .topbar{
+    padding:14px 18px 12px;
+    border-bottom:var(--line);
+    position:sticky;
+    top:0;
+    z-index:5;
+    background:var(--frame-bg);
+  }
+  .topbar .eyebrow{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.14em;
+    color:var(--ink-50);
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  .app-name{
+    font-family:var(--sans);
+    font-size:15px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    color:var(--ink-90);
+    margin-bottom:4px;
+  }
+  .topbar h1{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:-0.02em;
+  }
+  .topbar .sub{
+    font-size:12px;
+    color:var(--ink-50);
+    margin-top:2px;
+  }
+
+  .screen{
+    display:none;
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    -ms-overflow-style:none;
+    scrollbar-width:none;
+  }
+  .screen::-webkit-scrollbar{display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- shared placeholder box (wireframe image) ---------- */
+  .ph{
+    background:
+      repeating-linear-gradient(45deg, var(--ink-08) 0 2px, transparent 2px 10px),
+      var(--ink-04);
+    border:var(--line);
+    position:relative;
+  }
+  .ph::before, .ph::after{
+    content:'';
+    position:absolute; inset:0;
+  }
+  .ph.x::before{
+    background: linear-gradient(to top right, transparent calc(50% - 0.5px), var(--ink-15) 50%, transparent calc(50% + 0.5px));
+  }
+  .ph.x::after{
+    background: linear-gradient(to top left, transparent calc(50% - 0.5px), var(--ink-15) 50%, transparent calc(50% + 0.5px));
+  }
+
+  /* ---------- chips / tags ---------- */
+  .chiprow{
+    display:flex; gap:8px; padding:12px 16px; overflow-x:auto;
+    border-bottom:var(--line);
+  }
+  .chip{
+    font-family:var(--mono);
+    font-size:11px;
+    padding:6px 12px;
+    border:1px solid var(--ink-30);
+    border-radius:100px;
+    white-space:nowrap;
+    color:var(--ink-70);
+  }
+  .chip.on{
+    background:var(--ink-100);
+    border-color:var(--ink-100);
+    color:#fff;
+  }
+
+  /* ---------- NOW feed ---------- */
+  .feed{ padding:14px 16px; display:flex; flex-direction:column; gap:16px;}
+  .card{
+    border:var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    background:#fff;
+  }
+  .card .ph{ width:100%; height:180px; }
+  .card-body{ padding:12px 14px;}
+  .card-row1{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .card-title{ font-size:14px; font-weight:700;}
+  .card-type{
+    font-family:var(--mono); font-size:9px; letter-spacing:0.08em;
+    color:var(--ink-50); text-transform:uppercase; margin-top:2px;
+  }
+  .badge{
+    font-family:var(--mono);
+    font-size:10px;
+    padding:4px 8px;
+    border-radius:6px;
+    background:var(--ink-100);
+    color:#fff;
+    white-space:nowrap;
+  }
+  .badge.time{background:var(--ink-70);}
+  .card-meta{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:10px; padding-top:10px; border-top:1px dashed var(--ink-15);
+  }
+  .seller{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-50);}
+  .avatar{ width:18px;height:18px;border-radius:50%; background:var(--ink-15); border:1px solid var(--ink-30);}
+  .price{ font-size:14px; font-weight:700;}
+
+  /* ---------- CREATE ---------- */
+  .form{ padding:18px 16px 100px; display:flex; flex-direction:column; gap:22px;}
+  .field-label{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.1em;
+    color:var(--ink-50); text-transform:uppercase; margin-bottom:8px;
+    display:flex; justify-content:space-between;
+  }
+  .upload-box{
+    height:150px;
+    border:1.5px dashed var(--ink-30);
+    border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px;
+    color:var(--ink-50);
+  }
+  .upload-box .plus{
+    width:32px;height:32px;border:1.5px solid var(--ink-50); border-radius:50%;
+    display:flex;align-items:center;justify-content:center; font-size:16px;
+  }
+  .upload-box .txt{font-size:12px;}
+
+  /* ---------- CREATE : live preview ---------- */
+  .live-preview{ padding:18px 16px 4px; }
+  .lp-shape{
+    position:relative;
+    border:1.5px solid var(--ink-100);
+    background:var(--ink-04);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    cursor:pointer;
+  }
+  .lp-shape[data-shape="postcard"]{
+    aspect-ratio:3/2;
+    border-radius:10px;
+    box-shadow:0 0 0 4px #fff, 0 0 0 5.5px var(--ink-30);
+    margin:2px;
+  }
+  .lp-shape[data-shape="card"]{ aspect-ratio:3/4; border-radius:10px; }
+  .lp-shape[data-shape="popart"]{ aspect-ratio:3/4; border-radius:10px; flex-direction:column-reverse; }
+  .lp-shape[data-shape="sticker"]{ aspect-ratio:1/1; border-radius:50%; border-width:3px; }
+
+  .lp-photo{
+    flex:1;
+    min-height:0;
+    background-size:cover;
+    background-position:center;
+    position:relative;
+  }
+  .lp-photo.empty{
+    background-image:
+      repeating-linear-gradient(45deg, var(--ink-08) 0 2px, transparent 2px 10px);
+    background-color:var(--ink-04);
+  }
+  .lp-photo.empty::before, .lp-photo.empty::after{
+    content:''; position:absolute; inset:0;
+  }
+  .lp-photo.empty::before{ background: linear-gradient(to top right, transparent calc(50% - 0.5px), var(--ink-15) 50%, transparent calc(50% + 0.5px)); }
+  .lp-photo.empty::after{ background: linear-gradient(to top left, transparent calc(50% - 0.5px), var(--ink-15) 50%, transparent calc(50% + 0.5px)); }
+  .lp-hint{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    color:var(--ink-50); font-size:11px; text-align:center; pointer-events:none;
+  }
+  .lp-hint .plus{
+    width:32px;height:32px;border:1.5px solid var(--ink-50); border-radius:50%; background:#fff;
+    display:flex;align-items:center;justify-content:center; font-size:16px;
+  }
+  .lp-photo:not(.empty) .lp-hint{ display:none; }
+
+  .lp-vignette{ position:absolute; inset:0; display:none; pointer-events:none; }
+  .lp-shape[data-shape="postcard"] .lp-vignette{
+    display:block;
+    box-shadow:inset 0 0 22px 5px rgba(0,0,0,0.16);
+  }
+
+  .lp-postmark{ position:absolute; display:none; pointer-events:none; }
+  .lp-shape[data-shape="postcard"] .lp-postmark{
+    display:block; bottom:10px; right:10px; width:38px; height:38px; opacity:0.6;
+  }
+  .lp-postmark svg{ width:100%; height:100%; display:block; }
+
+  .sticker-fx{ position:absolute; inset:0; display:none; z-index:1; }
+  .lp-shape[data-shape="sticker"] .sticker-fx{ display:block; }
+  .fx-slice{ position:absolute; inset:0; }
+  .fx-pattern{ position:absolute; }
+
+  .popart-fx{
+    position:absolute; inset:0; display:none; z-index:1;
+    grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; background:#fff;
+  }
+  .lp-shape[data-shape="popart"] .popart-fx{ display:grid; }
+  .pop-cell{ position:relative; background-size:cover; background-position:center; overflow:hidden; }
+  .pop-dots{
+    position:absolute; inset:0; pointer-events:none;
+    background-image: radial-gradient(circle, rgba(0,0,0,0.6) 1px, transparent 1.3px);
+    background-size:5px 5px; mix-blend-mode:multiply; opacity:0.45;
+  }
+
+  .lp-hint{ z-index:2; }
+
+  .lp-shape-wrap{ position:relative; }
+
+  .fx-refresh{
+    display:none; position:absolute; top:8px; right:8px; z-index:6;
+    width:30px; height:30px; border-radius:50%;
+    background:rgba(255,255,255,0.92); border:1.5px solid var(--ink-100);
+    font-size:15px; line-height:1; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .lp-shape-wrap:has(.lp-shape[data-shape="sticker"]) .fx-refresh, .lp-shape-wrap.is-sticker .fx-refresh{ display:flex; }
+  .fx-label{
+    display:none; position:absolute; bottom:10px; left:50%; transform:translateX(-50%); z-index:6;
+    background:rgba(255,255,255,0.92); border:1px solid var(--ink-30); border-radius:100px;
+    padding:3px 10px; font-family:var(--mono); font-size:9px; color:var(--ink-70);
+  }
+  .lp-shape-wrap:has(.lp-shape[data-shape="sticker"]) .fx-label, .lp-shape-wrap.is-sticker .fx-label{ display:block; }
+
+  .lp-caption{
+    padding:10px 14px 12px;
+    background:#fff;
+    flex:0 0 auto;
+  }
+  .lp-shape[data-shape="sticker"] .lp-caption{ display:none; }
+  .lp-message{ font-size:12px; color:var(--ink-90); line-height:1.4; word-break:break-word; }
+  .lp-message.placeholder{ color:var(--ink-30); }
+  .lp-shape[data-shape="postcard"] .lp-message{ font-family:var(--mono); font-size:10.5px; }
+  .lp-timestamp{ font-family:var(--mono); font-size:9px; color:var(--ink-50); margin-top:5px; }
+
+  .lp-rule{ display:none; border:none; border-top:1px dashed var(--ink-30); margin:6px 0 0; }
+  .lp-shape[data-shape="postcard"] .lp-caption .lp-rule{ display:block; }
+
+  .lp-sticker-caption{
+    text-align:center; margin-top:12px; padding:0 20px;
+    font-size:11px; color:var(--ink-70); line-height:1.4;
+  }
+  .lp-sticker-caption .lp-timestamp{ margin-top:4px; }
+
+
+  .lp-edit-hint{
+    text-align:center; margin-top:10px; font-family:var(--mono); font-size:10px; color:var(--ink-50);
+  }
+
+  /* template chips: virtual icon previews */
+  .tpl-icon{ width:100%; height:100%; }
+  .tpl-icon svg{ width:100%; height:100%; stroke:var(--ink-50); fill:none; stroke-width:2; }
+  .tpl-icon svg .fill{ fill:var(--ink-15); stroke:none; }
+  .tpl.on .tpl-icon svg{ stroke:var(--ink-100); }
+  .tpl.on .tpl-icon svg .fill{ fill:var(--ink-70); }
+
+  .tpl-row{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px;}
+  .tpl{
+    flex:0 0 auto;
+    width:74px;
+    text-align:center;
+    cursor:pointer;
+  }
+  .tpl .box{ width:74px; height:74px; border-radius:8px; border:1.5px solid var(--ink-15); background:#fff; padding:12px; }
+  .tpl.sticker .box{ border-radius:50%; }
+  .tpl.on .box{ border:2px solid var(--ink-100); }
+  .tpl-name{ font-size:10px; margin-top:6px; color:var(--ink-70);}
+  .tpl.on .tpl-name{ color:var(--ink-100); font-weight:700;}
+
+  textarea.msg{
+    width:100%; height:80px;
+    border:var(--line); border-radius:10px;
+    padding:12px; font-size:13px; font-family:var(--sans);
+    resize:none; color:var(--ink-90);
+  }
+  textarea.msg::placeholder{ color:var(--ink-30); }
+  .ts-hint{
+    display:flex; align-items:center; gap:6px;
+    margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--ink-50);
+  }
+  .ts-hint .dot{width:5px;height:5px;border-radius:50%;background:var(--ink-30);}
+
+  .toggle2{
+    display:flex; border:1px solid var(--ink-100); border-radius:10px; overflow:hidden;
+  }
+  .toggle2 button{
+    flex:1; padding:11px; font-size:12px; font-weight:700; border:none;
+    background:#fff; color:var(--ink-90); font-family:var(--sans);
+  }
+  .toggle2 button.on{ background:var(--ink-100); color:#fff; }
+
+  .drop-settings{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+  .drop-settings.full{ grid-template-columns:1fr; }
+  .input-box{
+    border:var(--line); border-radius:10px; padding:10px 12px;
+  }
+  .input-box .lbl{ font-family:var(--mono); font-size:9px; color:var(--ink-50); text-transform:uppercase;}
+  .input-box .val{ font-size:14px; margin-top:2px; font-weight:700; display:flex; align-items:baseline; gap:4px;}
+  .input-box .val .unit{ font-size:11px; font-weight:400; color:var(--ink-50);}
+  .val-input{
+    width:4.5em; border:none; background:transparent; outline:none;
+    font-family:var(--sans); font-size:14px; font-weight:700; color:var(--ink-90);
+    padding:0; -moz-appearance:textfield;
+  }
+  .val-input::-webkit-outer-spin-button, .val-input::-webkit-inner-spin-button{
+    -webkit-appearance:auto; opacity:0.7;
+  }
+  .val-input:focus{ color:var(--ink-100); }
+
+  .share-row{
+    display:flex; gap:10px; overflow-x:auto;
+  }
+  .friend{ display:flex; flex-direction:column; align-items:center; gap:6px; flex:0 0 auto;}
+  .friend .av{ width:48px;height:48px;border-radius:50%; background:var(--ink-08); border:var(--line);}
+  .friend .n{ font-size:10px; color:var(--ink-70);}
+
+  .cta-fixed{
+    position:sticky; bottom:0; left:0; right:0;
+    padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, #fff 60%, rgba(255,255,255,0));
+  }
+  .btn-primary{
+    width:100%; padding:15px; border:none; border-radius:12px;
+    background:var(--ink-100); color:#fff; font-size:14px; font-weight:700;
+    font-family:var(--sans);
+  }
+  .btn-secondary{
+    width:100%; padding:13px; border:1px solid var(--ink-100); border-radius:12px;
+    background:#fff; color:var(--ink-90); font-size:13px; font-weight:700; margin-top:8px;
+  }
+
+  /* ---------- MY ---------- */
+  .pay-card{
+    margin:16px; padding:16px; border:var(--line); border-radius:14px;
+    background:var(--ink-04);
+  }
+  .pay-card .row{ display:flex; justify-content:space-between; align-items:center;}
+  .pay-card .lbl{ font-family:var(--mono); font-size:10px; color:var(--ink-50); text-transform:uppercase;}
+  .pay-card .amt{ font-size:22px; font-weight:800; margin-top:4px;}
+  .pay-card .cardline{
+    margin-top:14px; display:flex; align-items:center; justify-content:space-between;
+    padding-top:14px; border-top:1px dashed var(--ink-15);
+  }
+  .pay-card .cardinfo{ display:flex; align-items:center; gap:10px;}
+  .cardicon{ width:30px;height:20px;border-radius:4px; background:var(--ink-15); border:1px solid var(--ink-30);}
+  .link{ font-size:11px; color:var(--ink-70); font-family:var(--mono); text-decoration:underline; }
+
+  .segmented{
+    margin:0 16px 12px; display:flex; border:1px solid var(--ink-100); border-radius:10px; overflow:hidden;
+  }
+  .segmented button{ flex:1; padding:10px; font-size:12px; font-weight:700; border:none; background:#fff; font-family:var(--sans);}
+  .segmented button.on{ background:var(--ink-100); color:#fff;}
+
+  .album{
+    padding:0 16px 30px;
+    display:grid; grid-template-columns:1fr 1fr; gap:12px;
+  }
+  .goods{
+    border:var(--line); border-radius:10px; overflow:hidden; background:#fff;
+  }
+  .goods .ph{ width:100%; height:110px;}
+  .goods-info{ padding:9px 10px;}
+  .goods-info .t{ font-size:12px; font-weight:700;}
+  .goods-info .d{ font-family:var(--mono); font-size:9px; color:var(--ink-50); margin-top:3px;}
+  .goods-info .status{
+    display:inline-block; margin-top:6px; font-family:var(--mono); font-size:9px;
+    padding:2px 6px; border-radius:5px; background:var(--ink-08); color:var(--ink-70);
+  }
+
+  /* ---------- bottom nav ---------- */
+  .tabbar{
+    display:flex;
+    border-top:1.5px solid var(--ink-100);
+    background:#fff;
+  }
+  .tabbtn{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:5px;
+    padding:10px 0 12px;
+    background:none; border:none;
+    color:var(--ink-30);
+    font-family:var(--mono);
+  }
+  .tabbtn .icon{
+    width:22px; height:22px;
+  }
+  .tabbtn .icon svg{ width:100%; height:100%; stroke:var(--ink-30); fill:none; stroke-width:1.6;}
+  .tabbtn.active{ color:var(--ink-100);}
+  .tabbtn.active .icon svg{ stroke:var(--ink-100); }
+  .tabbtn .label{ font-size:9.5px; letter-spacing:0.06em; }
+
+  .caption{
+    text-align:center; font-family:var(--mono); font-size:11px; color:var(--ink-50);
+    margin-top:14px; max-width:390px;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="device">
+
+    <!-- ================= NOW ================= -->
+    <div id="screen-now" class="screen active">
+      <div class="topbar">
+        <div class="app-name">Seize the moment</div>
+        <h1>MOMENTS</h1>
+      </div>
+      <div class="chiprow">
+        <div class="chip on" data-filter="all">전체</div>
+        <div class="chip" data-filter="postcard">엽서</div>
+        <div class="chip" data-filter="card">카드</div>
+        <div class="chip" data-filter="sticker">스티커</div>
+        <div class="chip" data-filter="hot">🔥 한정판매중</div>
+        <div class="chip" data-filter="mine">MY</div>
+      </div>
+
+      <div class="feed">
+        <div id="feed-empty" style="display:none; padding:40px 10px; text-align:center; color:var(--ink-50); font-family:var(--mono); font-size:12px;">
+          해당 조건의 모먼트가 없어요
+        </div>
+        <div class="card" data-category="postcard" data-limited="true">
+          <div class="ph x"></div>
+          <div class="card-body">
+            <div class="card-row1">
+              <div>
+                <div class="card-title">여름밤 옥상 엽서</div>
+                <div class="card-type">postcard</div>
+              </div>
+              <div class="badge">18 / 30</div>
+            </div>
+            <div class="card-meta">
+              <div class="seller"><span class="avatar"></span>@yuni</div>
+              <div class="price">₩1,500</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="sticker" data-limited="true">
+          <div class="ph x"></div>
+          <div class="card-body">
+            <div class="card-row1">
+              <div>
+                <div class="card-title">퇴근길 노을 스티커팩</div>
+                <div class="card-type">sticker</div>
+              </div>
+              <div class="badge time">05:23 남음</div>
+            </div>
+            <div class="card-meta">
+              <div class="seller"><span class="avatar"></span>@doha</div>
+              <div class="price">₩2,000</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="card" data-limited="true">
+          <div class="ph x"></div>
+          <div class="card-body">
+            <div class="card-row1">
+              <div>
+                <div class="card-title">생일 축하 카드 - 리본</div>
+                <div class="card-type">card</div>
+              </div>
+              <div class="badge">3 / 30</div>
+            </div>
+            <div class="card-meta">
+              <div class="seller"><span class="avatar"></span>@minji</div>
+              <div class="price">₩1,000</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" data-category="postcard" data-limited="false">
+          <div class="ph x"></div>
+          <div class="card-body">
+            <div class="card-row1">
+              <div>
+                <div class="card-title">비 오는 창가 엽서</div>
+                <div class="card-type">postcard</div>
+              </div>
+              <div class="badge">SOLD OUT</div>
+            </div>
+            <div class="card-meta">
+              <div class="seller"><span class="avatar"></span>@rae</div>
+              <div class="price">₩1,500</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CREATE ================= -->
+    <div id="screen-create" class="screen">
+      <div class="topbar">
+        <div class="eyebrow">Create / 모먼트 만들기</div>
+        <h1>CREATE</h1>
+      </div>
+
+      <div class="live-preview">
+        <div class="field-label">미리보기 <span>탭해서 사진 선택</span></div>
+        <div class="lp-shape-wrap">
+          <div class="lp-shape" data-shape="postcard" id="lp-shape" onclick="document.getElementById('photo-input').click()">
+          <div class="lp-photo empty" id="lp-photo">
+            <div class="lp-hint">
+              <div class="plus">+</div>
+              <div>사진을 선택해주세요</div>
+            </div>
+            <div class="lp-vignette"></div>
+            <div class="lp-postmark">
+              <svg viewBox="0 0 38 38">
+                <circle cx="19" cy="19" r="17" fill="none" stroke="#212121" stroke-width="1"/>
+                <circle cx="19" cy="19" r="12.5" fill="none" stroke="#212121" stroke-width="1"/>
+              </svg>
+            </div>
+            <div class="sticker-fx" id="sticker-fx"></div>
+            <div class="popart-fx" id="popart-fx"></div>
+          </div>
+          <div class="lp-caption">
+            <div class="lp-message placeholder" id="lp-message">지금 이 순간을 남겨보세요</div>
+            <hr class="lp-rule">
+            <div class="lp-timestamp" id="lp-timestamp-in">2026.07.23 14:32</div>
+          </div>
+          </div>
+          <button type="button" class="fx-refresh" id="fx-refresh" onclick="cycleFx(event)" aria-label="이펙트 새로고침">↻</button>
+          <div class="fx-label" id="fx-label">만화경</div>
+        </div>
+        <div class="lp-sticker-caption" id="lp-sticker-caption" style="display:none;">
+          <div class="lp-message placeholder" id="lp-message-sticker">지금 이 순간을 남겨보세요</div>
+          <div class="lp-timestamp" id="lp-timestamp-sticker">2026.07.23 14:32</div>
+        </div>
+        <div class="lp-edit-hint">사진을 탭하면 앨범에서 선택할 수 있어요</div>
+        <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+      </div>
+
+      <div class="form" style="padding-top:6px;">
+        <div>
+          <div class="field-label">01. 템플릿 선택 <span>가로 스크롤</span></div>
+          <div class="tpl-row">
+            <div class="tpl on" data-shape="postcard">
+              <div class="box"><div class="tpl-icon"><svg viewBox="0 0 100 70"><rect x="4" y="4" width="92" height="62" rx="6"/><circle cx="76" cy="46" r="12" stroke-dasharray="0"/><circle cx="76" cy="46" r="7"/><line x1="10" y1="58" x2="46" y2="58"/></svg></div></div>
+              <div class="tpl-name">엽서</div>
+            </div>
+            <div class="tpl" data-shape="card">
+              <div class="box"><div class="tpl-icon"><svg viewBox="0 0 100 120"><rect x="4" y="4" width="92" height="112" rx="6"/><rect class="fill" x="10" y="10" width="80" height="78" rx="2"/><line x1="18" y1="99" x2="62" y2="99"/><line x1="18" y1="107" x2="46" y2="107"/></svg></div></div>
+              <div class="tpl-name">폴라로이드</div>
+            </div>
+            <div class="tpl" data-shape="sticker">
+              <div class="box"><div class="tpl-icon"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" stroke-dasharray="6 5"/><circle class="fill" cx="50" cy="50" r="9"/></svg></div></div>
+              <div class="tpl-name">스티커</div>
+            </div>
+            <div class="tpl" data-shape="popart">
+              <div class="box"><div class="tpl-icon"><svg viewBox="0 0 100 100"><rect x="4" y="4" width="42" height="42" rx="3"/><rect class="fill" x="54" y="4" width="42" height="42" rx="3"/><rect class="fill" x="4" y="54" width="42" height="42" rx="3"/><rect x="54" y="54" width="42" height="42" rx="3"/></svg></div></div>
+              <div class="tpl-name">팝아트</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="field-label">02. 메시지</div>
+          <textarea class="msg" id="msg-input" placeholder="지금 이 순간을 남겨보세요" oninput="handleMessageInput(event)"></textarea>
+          <div class="ts-hint"><span class="dot"></span> <span id="ts-hint-text">2026.07.23 14:32</span> 자동 기록됨</div>
+        </div>
+
+        <div>
+          <div class="field-label">03. 무엇을 할까요?</div>
+          <div class="toggle2">
+            <button id="btn-share" onclick="setCreateMode('share')">친구에게 공유</button>
+            <button id="btn-drop" class="on" onclick="setCreateMode('drop')">Drop 판매하기</button>
+          </div>
+        </div>
+
+        <div id="drop-panel">
+          <div class="field-label">Drop 조건</div>
+          <div class="drop-settings">
+            <div class="input-box">
+              <div class="lbl">수량 한정</div>
+              <div class="val">
+                <input type="number" class="val-input" id="qty-input" value="30" min="0" max="30" step="1" oninput="clampInput(this); toggleQtyWarning(this);">
+                <span class="unit">장</span>
+              </div>
+            </div>
+            <div class="input-box">
+              <div class="lbl">시간 한정</div>
+              <div class="val">
+                <input type="number" class="val-input" id="time-input" value="30" min="1" max="30" step="1" oninput="clampInput(this)">
+                <span class="unit">분</span>
+              </div>
+            </div>
+          </div>
+          <div id="qty-warning" style="display:none; margin-top:8px; font-family:var(--mono); font-size:11px; color:#c0392b; line-height:1.5;">
+            0장을 선택하면 피드에서만 보여지고 판매는 불가해요!
+          </div>
+          <div class="drop-settings full" style="margin-top:10px;">
+            <div class="input-box">
+              <div class="lbl">가격</div>
+              <div class="val">
+                <input type="number" class="val-input" id="price-input" value="1500" min="100" max="3000" step="50" oninput="clampInput(this)">
+                <span class="unit">원 / 장</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="share-panel" style="display:none;">
+          <div class="field-label">받는 사람</div>
+          <div class="share-row">
+            <div class="friend"><div class="av"></div><div class="n">유니</div></div>
+            <div class="friend"><div class="av"></div><div class="n">도하</div></div>
+            <div class="friend"><div class="av"></div><div class="n">민지</div></div>
+            <div class="friend"><div class="av"></div><div class="n">+ 더보기</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-fixed">
+        <button class="btn-primary" id="cta-main">Drop 등록하기</button>
+      </div>
+    </div>
+
+    <!-- ================= MY ================= -->
+    <div id="screen-my" class="screen">
+      <div class="topbar">
+        <div class="eyebrow">My / 내 기록</div>
+        <h1>MY</h1>
+      </div>
+
+      <div class="pay-card">
+        <div class="row">
+          <div>
+            <div class="lbl">보유 캐시</div>
+            <div class="amt">₩12,300</div>
+          </div>
+          <div class="link">충전하기</div>
+        </div>
+        <div class="cardline">
+          <div class="cardinfo">
+            <div class="cardicon"></div>
+            <div>
+              <div style="font-size:12px;font-weight:700;">신한카드 •••• 4821</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--ink-50);">기본 결제수단</div>
+            </div>
+          </div>
+          <div class="link">관리</div>
+        </div>
+      </div>
+
+      <div class="segmented">
+        <button class="on" onclick="setMyTab('buy')">구매한 모먼트</button>
+        <button onclick="setMyTab('sell')">판매한 모먼트</button>
+      </div>
+
+      <div id="my-buy" class="album">
+        <div class="goods">
+          <div class="ph x"></div>
+          <div class="goods-info">
+            <div class="t">여름밤 옥상 엽서</div>
+            <div class="d">2026.07.20 구매</div>
+            <span class="status">@yuni 作</span>
+          </div>
+        </div>
+        <div class="goods">
+          <div class="ph x"></div>
+          <div class="goods-info">
+            <div class="t">생일 카드 - 리본</div>
+            <div class="d">2026.07.18 구매</div>
+            <span class="status">@minji 作</span>
+          </div>
+        </div>
+        <div class="goods">
+          <div class="ph x"></div>
+          <div class="goods-info">
+            <div class="t">퇴근길 스티커팩</div>
+            <div class="d">2026.07.15 구매</div>
+            <span class="status">@doha 作</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="my-sell" class="album" style="display:none;">
+        <div class="goods">
+          <div class="ph x"></div>
+          <div class="goods-info">
+            <div class="t">벚꽃길 엽서</div>
+            <div class="d">2026.04.02 판매</div>
+            <span class="status">27 / 30 판매</span>
+          </div>
+        </div>
+        <div class="goods">
+          <div class="ph x"></div>
+          <div class="goods-info">
+            <div class="t">비오는 창가 엽서</div>
+            <div class="d">2026.06.11 판매</div>
+            <span class="status">SOLD OUT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB BAR ================= -->
+    <div class="tabbar">
+      <button class="tabbtn active" id="tab-now" onclick="setTab('now')">
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.4"/></svg></span>
+        <span class="label">MOMENTS</span>
+      </button>
+      <button class="tabbtn" id="tab-create" onclick="setTab('create')">
+        <span class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg></span>
+        <span class="label">CREATE</span>
+      </button>
+      <button class="tabbtn" id="tab-my" onclick="setTab('my')">
+        <span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/></svg></span>
+        <span class="label">MY</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="caption">SEIZE THE MOMENT · GRAYSCALE WIREFRAME · v0.1</div>
+</div>
+
+<script>
+function setTab(name){
+  ['now','create','my'].forEach(function(n){
+    document.getElementById('screen-'+n).classList.toggle('active', n===name);
+    document.getElementById('tab-'+n).classList.toggle('active', n===name);
+  });
+}
+
+function setCreateMode(mode){
+  var isDrop = mode === 'drop';
+  document.getElementById('btn-drop').classList.toggle('on', isDrop);
+  document.getElementById('btn-share').classList.toggle('on', !isDrop);
+  document.getElementById('drop-panel').style.display = isDrop ? 'block' : 'none';
+  document.getElementById('share-panel').style.display = isDrop ? 'none' : 'block';
+  document.getElementById('cta-main').textContent = isDrop ? 'Drop 등록하기' : '친구에게 공유하기';
+}
+
+document.getElementById('cta-main').addEventListener('click', function(){
+  var isDrop = document.getElementById('btn-drop').classList.contains('on');
+  if(isDrop){ registerDrop(); }
+});
+
+function registerDrop(){
+  var shape = document.getElementById('lp-shape').getAttribute('data-shape');
+  var categoryMap = { postcard:'postcard', card:'card', sticker:'sticker', popart:'card' };
+  var category = categoryMap[shape] || 'card';
+  var typeLabelMap = { postcard:'postcard', card:'card', sticker:'sticker', popart:'card' };
+  var typeLabel = typeLabelMap[shape] || 'card';
+
+  var qty = parseInt(document.getElementById('qty-input').value, 10);
+  if(isNaN(qty)) qty = 0;
+  var price = parseInt(document.getElementById('price-input').value, 10);
+  if(isNaN(price)) price = 0;
+
+  var msgEl = document.getElementById('msg-input');
+  var title = msgEl.value.trim();
+  if(!title){ title = '제목 없는 모먼트'; }
+  if(title.length > 22){ title = title.slice(0,22) + '…'; }
+
+  var photoURL = window.__stickerPhotoURL || null;
+
+  var card = document.createElement('div');
+  card.className = 'card';
+  card.setAttribute('data-category', category);
+  card.setAttribute('data-mine', 'true');
+  card.setAttribute('data-limited', qty > 0 ? 'true' : 'false');
+
+  var photoDiv = document.createElement('div');
+  if(photoURL){
+    photoDiv.style.width = '100%';
+    photoDiv.style.height = '180px';
+    photoDiv.style.backgroundImage = "url('" + photoURL + "')";
+    photoDiv.style.backgroundSize = 'cover';
+    photoDiv.style.backgroundPosition = 'center';
+  } else {
+    photoDiv.className = 'ph x';
+    photoDiv.style.width = '100%';
+    photoDiv.style.height = '180px';
+  }
+  card.appendChild(photoDiv);
+
+  var badgeText = qty > 0 ? ('0 / ' + qty) : '미판매 (전시용)';
+
+  var body = document.createElement('div');
+  body.className = 'card-body';
+  body.innerHTML =
+    '<div class="card-row1">' +
+      '<div>' +
+        '<div class="card-title"></div>' +
+        '<div class="card-type">' + typeLabel + '</div>' +
+      '</div>' +
+      '<div class="badge"></div>' +
+    '</div>' +
+    '<div class="card-meta">' +
+      '<div class="seller"><span class="avatar"></span>@me</div>' +
+      '<div class="price">₩' + price.toLocaleString() + '</div>' +
+    '</div>';
+  body.querySelector('.card-title').textContent = title;
+  body.querySelector('.badge').textContent = badgeText;
+  card.appendChild(body);
+
+  var feed = document.querySelector('#screen-now .feed');
+  var emptyState = document.getElementById('feed-empty');
+  feed.insertBefore(card, emptyState.nextSibling);
+
+  var allChip = document.querySelector('.chip[data-filter="all"]');
+  if(allChip){ allChip.click(); }
+
+  setTab('now');
+}
+
+function setMyTab(which){
+  var isBuy = which === 'buy';
+  var buttons = document.querySelectorAll('.segmented button');
+  buttons[0].classList.toggle('on', isBuy);
+  buttons[1].classList.toggle('on', !isBuy);
+  document.getElementById('my-buy').style.display = isBuy ? 'grid' : 'none';
+  document.getElementById('my-sell').style.display = isBuy ? 'none' : 'grid';
+}
+
+document.querySelectorAll('.chip').forEach(function(chip){
+  chip.addEventListener('click', function(){
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('on'); });
+    chip.classList.add('on');
+    var filter = chip.getAttribute('data-filter');
+    var cards = document.querySelectorAll('#screen-now .card');
+    var visibleCount = 0;
+    cards.forEach(function(card){
+      var category = card.getAttribute('data-category');
+      var limited = card.getAttribute('data-limited') === 'true';
+      var mine = card.getAttribute('data-mine') === 'true';
+      var show = filter === 'all'
+        || (filter === 'hot' && limited)
+        || (filter === 'mine' && mine)
+        || (filter === category);
+      card.style.display = show ? '' : 'none';
+      if(show) visibleCount++;
+    });
+    document.getElementById('feed-empty').style.display = visibleCount === 0 ? 'block' : 'none';
+  });
+});
+
+function clampInput(el){
+  var max = parseInt(el.max, 10);
+  if(el.value === '') return;
+  var v = parseInt(el.value, 10);
+  if(!isNaN(v) && v > max) el.value = max;
+}
+document.querySelectorAll('.val-input').forEach(function(el){
+  el.addEventListener('blur', function(){
+    var min = parseInt(el.min, 10);
+    var max = parseInt(el.max, 10);
+    var v = parseInt(el.value, 10);
+    if(isNaN(v)) v = min;
+    if(v < min) v = min;
+    if(v > max) v = max;
+    el.value = v;
+    if(el.id === 'qty-input'){ toggleQtyWarning(el); }
+  });
+});
+
+function toggleQtyWarning(el){
+  var warn = document.getElementById('qty-warning');
+  if(!warn) return;
+  var v = parseInt(el.value, 10);
+  warn.style.display = (v === 0) ? 'block' : 'none';
+}
+
+document.querySelectorAll('.tpl').forEach(function(el){
+  el.addEventListener('click', function(){
+    document.querySelectorAll('.tpl').forEach(function(t){ t.classList.remove('on'); });
+    el.classList.add('on');
+    var shape = el.getAttribute('data-shape');
+    document.getElementById('lp-shape').setAttribute('data-shape', shape);
+    var isSticker = shape === 'sticker';
+    document.getElementById('lp-sticker-caption').style.display = isSticker ? 'block' : 'none';
+    document.querySelector('.lp-shape-wrap').classList.toggle('is-sticker', isSticker);
+    if(isSticker){ renderStickerFx(); }
+    if(shape === 'popart'){ renderPopArt(); }
+  });
+});
+
+function handlePhotoUpload(event){
+  var file = event.target.files && event.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var url = e.target.result;
+    var photoEl = document.getElementById('lp-photo');
+    photoEl.style.backgroundImage = "url('" + url + "')";
+    photoEl.classList.remove('empty');
+    window.__stickerPhotoURL = url;
+    var shape = document.getElementById('lp-shape').getAttribute('data-shape');
+    if(shape === 'sticker'){ renderStickerFx(); }
+    if(shape === 'popart'){ renderPopArt(); }
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPopArt(){
+  var container = document.getElementById('popart-fx');
+  if(!container) return;
+  container.innerHTML = '';
+  var fill = getFillCSS();
+  var filters = [
+    'grayscale(1) contrast(1.1)',
+    'grayscale(1) invert(1) contrast(1.1)',
+    'grayscale(1) contrast(2.4) brightness(1.1)',
+    'grayscale(1) contrast(1.1) brightness(0.72)'
+  ];
+  filters.forEach(function(f){
+    var cell = document.createElement('div');
+    cell.className = 'pop-cell';
+    cell.style.backgroundImage = fill.image;
+    if(fill.isPhoto){ cell.style.backgroundSize = 'cover'; }
+    cell.style.filter = f;
+    var dots = document.createElement('div');
+    dots.className = 'pop-dots';
+    cell.appendChild(dots);
+    container.appendChild(cell);
+  });
+}
+
+function getFillCSS(){
+  var url = window.__stickerPhotoURL;
+  if(url){ return { image: "url('" + url + "')", isPhoto:true }; }
+  return { image: "repeating-linear-gradient(45deg, var(--ink-15) 0 2px, var(--ink-04) 2px 12px)", isPhoto:false };
+}
+
+function buildFxKaleidoscope(container, size){
+  var slices = 8, cx = size/2, cy = size/2, r = size*0.8;
+  var fill = getFillCSS();
+  for(var i=0;i<slices;i++){
+    var a1 = (360/slices)*i*Math.PI/180, a2 = (360/slices)*(i+1)*Math.PI/180;
+    var x1 = cx+r*Math.cos(a1), y1 = cy+r*Math.sin(a1);
+    var x2 = cx+r*Math.cos(a2), y2 = cy+r*Math.sin(a2);
+    var slice = document.createElement('div');
+    slice.className = 'fx-slice';
+    slice.style.clipPath = 'polygon('+cx+'px '+cy+'px, '+x1+'px '+y1+'px, '+x2+'px '+y2+'px)';
+    var innerSize = size*2;
+    var inner = document.createElement('div');
+    inner.className = 'fx-pattern';
+    inner.style.left = ((size-innerSize)/2)+'px';
+    inner.style.top = ((size-innerSize)/2)+'px';
+    inner.style.width = innerSize+'px';
+    inner.style.height = innerSize+'px';
+    inner.style.backgroundImage = fill.image;
+    inner.style.backgroundSize = fill.isPhoto ? 'cover' : 'auto';
+    inner.style.backgroundPosition = 'center';
+    inner.style.transformOrigin = (innerSize/2)+'px '+(innerSize/2)+'px';
+    var deg = (360/slices)*i;
+    inner.style.transform = 'rotate('+deg+'deg)'+(i%2 ? ' scaleX(-1)' : '');
+    slice.appendChild(inner);
+    container.appendChild(slice);
+  }
+}
+
+function buildFxCollage(container, size){
+  var fill = getFillCSS();
+  var chipSize = Math.round(size*0.5);
+  var positions = [
+    {top:-size*0.05, left:size*0.08, rot:-12, bgPos:'20% 20%'},
+    {top:size*0.28, left:-size*0.10, rot:9, bgPos:'70% 30%'},
+    {top:size*0.46, left:size*0.46, rot:-6, bgPos:'50% 70%'},
+    {top:size*0.08, left:size*0.5, rot:16, bgPos:'30% 60%'},
+    {top:size*0.6, left:size*0.08, rot:4, bgPos:'60% 40%'}
+  ];
+  positions.forEach(function(p){
+    var chip = document.createElement('div');
+    chip.style.position = 'absolute';
+    chip.style.width = chipSize+'px';
+    chip.style.height = chipSize+'px';
+    chip.style.top = p.top+'px';
+    chip.style.left = p.left+'px';
+    chip.style.border = '3px solid #fff';
+    chip.style.boxShadow = '0 2px 7px rgba(0,0,0,0.2)';
+    chip.style.backgroundImage = fill.image;
+    chip.style.backgroundSize = fill.isPhoto ? (size*1.6)+'px '+(size*1.6)+'px' : 'auto';
+    chip.style.backgroundPosition = fill.isPhoto ? p.bgPos : '0 0';
+    chip.style.transform = 'rotate('+p.rot+'deg)';
+    container.appendChild(chip);
+  });
+}
+
+function buildFxMosaic(container, size){
+  var fill = getFillCSS();
+  var cols = 6;
+  var tile = size/cols;
+  for(var r=0;r<cols;r++){
+    for(var c=0;c<cols;c++){
+      var i = r*cols+c;
+      var t = document.createElement('div');
+      t.style.position = 'absolute';
+      t.style.width = tile+'px';
+      t.style.height = tile+'px';
+      t.style.left = (c*tile)+'px';
+      t.style.top = (r*tile)+'px';
+      t.style.backgroundImage = fill.image;
+      if(fill.isPhoto){
+        t.style.backgroundSize = size+'px '+size+'px';
+        t.style.backgroundPosition = '-'+(c*tile)+'px -'+(r*tile)+'px';
+      } else {
+        t.style.backgroundSize = 'auto';
+      }
+      var rot = [0,90,180,270][(i*3)%4];
+      t.style.transform = 'rotate('+rot+'deg)';
+      t.style.border = '1px solid #fff';
+      container.appendChild(t);
+    }
+  }
+}
+
+function buildFxRings(container, size){
+  var fill = getFillCSS();
+  var sizes = [size, size*0.8, size*0.6, size*0.4, size*0.2];
+  sizes.forEach(function(s, idx){
+    var ring = document.createElement('div');
+    ring.style.position = 'absolute';
+    ring.style.width = s+'px';
+    ring.style.height = s+'px';
+    ring.style.left = ((size-s)/2)+'px';
+    ring.style.top = ((size-s)/2)+'px';
+    ring.style.borderRadius = '50%';
+    ring.style.overflow = 'hidden';
+    ring.style.zIndex = idx+1;
+    if(idx>0){ ring.style.boxShadow = '0 0 0 1px rgba(255,255,255,0.9)'; }
+    var innerSize = Math.round(s*1.7);
+    var inner = document.createElement('div');
+    inner.style.position = 'absolute';
+    inner.style.width = innerSize+'px';
+    inner.style.height = innerSize+'px';
+    inner.style.left = ((s-innerSize)/2)+'px';
+    inner.style.top = ((s-innerSize)/2)+'px';
+    inner.style.backgroundImage = fill.image;
+    inner.style.backgroundSize = fill.isPhoto ? 'cover' : 'auto';
+    inner.style.backgroundPosition = 'center';
+    inner.style.transform = 'rotate('+(idx*33)+'deg)';
+    ring.appendChild(inner);
+    container.appendChild(ring);
+  });
+}
+
+var fxBuilders = [buildFxKaleidoscope, buildFxCollage, buildFxMosaic, buildFxRings];
+var fxNames = ['만화경','콜라주','모자이크','방사형 링'];
+var fxIndex = 0;
+
+function renderStickerFx(){
+  var container = document.getElementById('sticker-fx');
+  if(!container) return;
+  container.innerHTML = '';
+  var size = container.offsetWidth || 220;
+  fxBuilders[fxIndex](container, size);
+  var label = document.getElementById('fx-label');
+  if(label) label.textContent = fxNames[fxIndex];
+}
+
+function cycleFx(event){
+  event.stopPropagation();
+  fxIndex = (fxIndex+1) % fxBuilders.length;
+  renderStickerFx();
+}
+
+function handleMessageInput(event){
+  var text = event.target.value.trim();
+  var show = text.length > 0 ? text : '지금 이 순간을 남겨보세요';
+  var isPlaceholder = text.length === 0;
+  ['lp-message','lp-message-sticker'].forEach(function(id){
+    var el = document.getElementById(id);
+    el.textContent = show;
+    el.classList.toggle('placeholder', isPlaceholder);
+  });
+}
+
+(function initTimestamp(){
+  var now = new Date();
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  var formatted = now.getFullYear() + '.' + pad(now.getMonth()+1) + '.' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+  ['lp-timestamp-in','lp-timestamp-sticker','ts-hint-text'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.textContent = formatted;
+  });
+})();
+</script>
+
+</body>
+</html>
